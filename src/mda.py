@@ -1,3 +1,4 @@
+from functools import cache
 from typing import Optional
 
 import numpy as np
@@ -5,44 +6,57 @@ from numpy.typing import NDArray
 from scipy.stats import circstd
 
 
-def distance(
-    point1: NDArray,
-    point2: NDArray,
-    dir_indices: Optional[list[int]],
-    std_list: list[float],
-) -> float:
+def distance(point1: NDArray, point2: NDArray, dir_indices: Optional[list[int]], std_list: list[float]) -> float:
+    """Compute the distance between two points"""  # TODO: docstring
+
     vector = np.zeros_like(point1)
-    for ind, (p1, p2) in enumerate(zip(point1, point2)):
-        div = np.sqrt(2) * std_list[ind]
+    for ind, (p1_ind, p2_ind) in enumerate(zip(point1, point2)):
         if dir_indices is not None and ind in dir_indices:
-            diff = ((p1 - p2) + 180) % 360 - 180
-            vector[ind] = diff / div
+            dist = abs(((p1_ind - p2_ind) + 180) % 360 - 180)
         else:
-            vector[ind] = abs(p1 - p2) / div
+            dist = abs(p1_ind - p2_ind)
+        vector[ind] = dist / (np.sqrt(2) * std_list[ind])
+
     return float(np.linalg.norm(vector))
 
 
-def distance2subset(data_point, subset, dir_indices, std_list) -> float:
-    min_dist = np.inf
-    for point in subset:
-        dist = distance(data_point, point, dir_indices, std_list)
-        if dist < min_dist:
-            min_dist = dist
-    return min_dist
+def preprocess(data_tuple: tuple[NDArray, ...]) -> NDArray:
+    return np.array(data_tuple, dtype=np.float32).T
 
 
-def get_std(
-    data_tuple: tuple[NDArray, ...],
-    dir_indices: Optional[list[int]],
-) -> list[float]:
-    std_list = []
+def std_list(data_tuple: tuple[NDArray, ...], dir_indices: Optional[list[int]]) -> list[float]:
+    return_list = []
     for ind, array in enumerate(data_tuple):
         if dir_indices is not None and ind in dir_indices:
-            std = circstd(array, high=360, low=0)
+            computed_std = circstd(array, high=360, low=0)
         else:
-            std = np.std(array)
-        std_list.append(std)
-    return std_list
+            computed_std = np.std(array)
+        return_list.append(computed_std)
+    return return_list
+
+
+class DataMatrix:
+    def __init__(self, data_tuple: tuple[NDArray, ...], dir_indices: Optional[list[int]]):
+        self.data = preprocess(data_tuple)
+        self.std_list = std_list(data_tuple, dir_indices)
+        self.dir_indices = dir_indices
+
+    def __getitem__(self, index: list[int] | int) -> NDArray:
+        return self.data[index]
+
+    @property
+    def num_points(self) -> int:
+        return len(self.data)
+
+    @cache
+    def distance_between(self, index1: int, index2: int) -> float:
+        point1, point2 = self.data[[index1, index2]]
+        return distance(point1, point2, self.dir_indices, self.std_list)
+
+
+def distance_to_subset(data_matrix: DataMatrix, point_index: int, subset_indices: list[int]) -> float:
+    distance_list = [data_matrix.distance_between(point_index, i_point) for i_point in subset_indices]
+    return min(distance_list)
 
 
 def max_diss_alg(
@@ -51,33 +65,30 @@ def max_diss_alg(
     n_clusters: int = 10,
     dir_indices: Optional[list[int]] = None,
 ) -> NDArray:
-    """Maximum dissimilarity clustering algorithm"""
+    """Maximum dissimilarity clustering algorithm"""  # TODO: docstring
 
-    # Preprocess the data tuple
-    data: NDArray = np.array(data_tuple, dtype=np.float32).T
-    std_list = get_std(data_tuple, dir_indices)
-    n_inputs = len(data_tuple)
+    # Create the data matrix
+    data_matrix = DataMatrix(data_tuple, dir_indices)
 
     # Initialize the centroids with the seed
-    subset: NDArray = np.array([data[seed_index]])
+    subset_indices: list[int] = [seed_index]
 
-    while len(subset) < n_clusters:
-        max_dist = -1
-        next_point = None
+    while len(subset_indices) < n_clusters:
+        max_dist = next_point_index = -1
         # Find the point with the maximum distance to the subset
-        for i, data_point in enumerate(data):
-            if data_point in subset:
+        for i_point in range(data_matrix.num_points):
+            if i_point in subset_indices:
                 continue
-            # Get the minimum distance to a point in the subset
-            min_dist = distance2subset(data_point, subset, dir_indices, std_list)
-            if min_dist > max_dist:
-                max_dist = min_dist
-                next_point = data_point
+            # Get the distance to the closest point in the subset
+            distance = distance_to_subset(data_matrix, i_point, subset_indices)
+            if distance > max_dist:
+                max_dist = distance
+                next_point_index = i_point
             # Compute the progress of the for loop percentage
-            progress = (i + 1) / len(data) * 100
-            print(f"Finding cluster nº{len(subset)} --> {progress:.2f}%", end="\r")
+            progress = (i_point + 1) / data_matrix.num_points * 100
+            print(f"Finding cluster nº{len(subset_indices)} --> {progress:.2f}%", end="\r")
         # Add the point with the maximum distance to the subset
-        if next_point is not None:
-            subset = np.append(subset, next_point).reshape(-1, n_inputs)
+        if next_point_index > -1:
+            subset_indices.append(next_point_index)
 
-    return subset
+    return data_matrix[subset_indices]
