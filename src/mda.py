@@ -16,9 +16,9 @@ def distance(point1: NDArray, point2: NDArray, dir_indices: Optional[list[int]],
     vector = np.zeros_like(point1)
     for ind, (p1_ind, p2_ind) in enumerate(zip(point1, point2)):
         if dir_indices is not None and ind in dir_indices:
-            dist = abs(((p1_ind - p2_ind) + 180) % 360 - 180)
+            dist = ((p1_ind - p2_ind) + 180) % 360 - 180
         else:
-            dist = abs(p1_ind - p2_ind)
+            dist = p1_ind - p2_ind
         vector[ind] = dist / (np.sqrt(2) * std_list[ind])
     return float(np.linalg.norm(vector))
 
