@@ -67,8 +67,8 @@ def distance_to_subset(data_matrix: DataMatrix, point_index: int, subset_indices
 
 def max_diss_alg(
     data_tuple: tuple[NDArray, ...],
+    n_clusters: int,
     seed_index: int = 0,
-    n_clusters: int = 10,
     dir_indices: Optional[list[int]] = None,
 ) -> NDArray:
     """Maximum dissimilarity clustering algorithm"""  # TODO: docstring

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 
-from calib.src import max_diss_alg
+from mdapy.src import max_diss_alg
 
 # Load wave data (140_256 hours)
 datawave = np.load("examples/data/datawave.npz")
@@ -13,11 +13,11 @@ dir: NDArray = datawave["dir"][indices]
 tp: NDArray = datawave["tp"][indices]
 
 # Select the seed point index and the number of clusters
-seed_index = np.argmax(tp)
+seed_index = np.argmax(tp).astype(int)
 n_clusters = 10
 
 # Cluster the data array (2D)
-clustered_data = max_diss_alg((dir, tp), seed_index, n_clusters, dir_indices=[0])
+clustered_data = max_diss_alg((dir, tp), n_clusters, seed_index, dir_indices=[0])
 
 # Plot the data points and the clustered ones
 plt.plot(dir, tp, ".", alpha=0.1)
