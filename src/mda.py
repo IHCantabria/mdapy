@@ -13,8 +13,6 @@ from scipy.stats import circstd
 
 
 def distance(point1: NDArray, point2: NDArray, dir_indices: Optional[list[int]], std_list: list[float]) -> float:
-    """Compute the distance between two points"""  # TODO: docstring
-
     vector = np.zeros_like(point1)
     for ind, (p1_ind, p2_ind) in enumerate(zip(point1, point2)):
         if dir_indices is not None and ind in dir_indices:
@@ -22,7 +20,6 @@ def distance(point1: NDArray, point2: NDArray, dir_indices: Optional[list[int]],
         else:
             dist = abs(p1_ind - p2_ind)
         vector[ind] = dist / (np.sqrt(2) * std_list[ind])
-
     return float(np.linalg.norm(vector))
 
 
@@ -71,7 +68,25 @@ def max_diss_alg(
     seed_index: int = 0,
     dir_indices: Optional[list[int]] = None,
 ) -> NDArray:
-    """Maximum dissimilarity clustering algorithm"""  # TODO: docstring
+    """
+    This function implements the Maximum Dissimilarity Algorithm (MDA) to cluster a data.
+
+    Parameters
+    ----------
+    data_tuple : tuple[NDArray, ...]
+        A tuple of arrays with the data to cluster.
+    n_clusters : int
+        The number of clusters to generate.
+    seed_index : int, optional
+        The index of the seed point, by default 0
+    dir_indices : list[int], optional
+        The indices of the arrays that represent directions, by default None
+
+    Returns
+    -------
+    NDArray
+        An array of points representing the clustered data.
+    """
 
     # Create the data matrix
     data_matrix = DataMatrix(data_tuple, dir_indices)
