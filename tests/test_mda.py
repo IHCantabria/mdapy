@@ -1,6 +1,6 @@
 import numpy as np
 
-from mdapy.src.mda import distance
+from mdapy.mda import distance
 
 # Common variable used in tests
 std_list = [1 / np.sqrt(2)] * 2

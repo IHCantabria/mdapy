@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 
-from mdapy.src import max_diss_alg
+from mdapy import max_diss_alg
 
 # Load wave data (140_256 hours)
 datawave = np.load("examples/data/datawave.npz")
