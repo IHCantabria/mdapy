@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "mdapy"
+name = "ihc-mdapy"
 version = "0.1.0"
 description = "Maximum Dissimilarity Algorithm in Python"
 authors = [{ name = "Pablo Garcia" }, { email = "pablofueros@gmail.com" }]
