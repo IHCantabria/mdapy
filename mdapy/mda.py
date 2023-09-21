@@ -67,7 +67,7 @@ def max_diss_alg(
     n_clusters: int,
     seed_index: int = 0,
     dir_indices: Optional[list[int]] = None,
-) -> NDArray:
+) -> tuple[NDArray, list[int]]:
     """
     This function implements the Maximum Dissimilarity Algorithm (MDA) to cluster a data.
 
@@ -80,12 +80,12 @@ def max_diss_alg(
     seed_index : int, optional
         The index of the seed point, by default 0
     dir_indices : list[int], optional
-        The indices of the arrays that represent directions, by default None
+        The indices of directional arrays in the tuple, by default None
 
     Returns
     -------
-    NDArray
-        An array of points representing the clustered data.
+    tuple[NDArray, list[int]]
+        A tuple with the clustered data points and their indices in the original data.
     """
 
     # Create the data matrix
@@ -107,9 +107,9 @@ def max_diss_alg(
                 next_point_index = i_point
             # Compute the progress of the for loop percentage
             progress = (i_point + 1) / data_matrix.num_points * 100
-            print(f"Finding cluster nº{len(subset_indices)} --> {progress:.2f}%", end="\r")
+            print(f"Finding cluster nº{len(subset_indices)+1} --> {progress:.2f}%", end="\r")
         # Add the point with the maximum distance to the subset
         if next_point_index > -1:
             subset_indices.append(next_point_index)
 
-    return data_matrix[subset_indices]
+    return data_matrix[subset_indices], subset_indices
