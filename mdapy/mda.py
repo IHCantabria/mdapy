@@ -40,6 +40,10 @@ def std_list(data_tuple: tuple[NDArray, ...], dir_indices: Optional[list[int]]) 
 
 class DataMatrix:
     def __init__(self, data_tuple: tuple[NDArray, ...], dir_indices: Optional[list[int]]):
+        # Check if any of the arrays in the tuple has NaN values
+        for array in data_tuple:
+            if np.isnan(array).any():
+                raise ValueError("The data contains NaN values")
         self.data = preprocess(data_tuple)
         self.std_list = std_list(data_tuple, dir_indices)
         self.dir_indices = dir_indices

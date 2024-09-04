@@ -19,3 +19,9 @@ plot = ["matplotlib>=3.8"]
 
 [project.urls]
 Repository = "https://github.com/IHCantabria/mdapy"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ['mdapy']
